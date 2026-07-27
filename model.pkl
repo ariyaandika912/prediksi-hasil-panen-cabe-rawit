@@ -1,0 +1,24 @@
+fitur = [
+
+"Tahun",
+"Minggu",
+"Curah_Hujan_mm",
+"Suhu_C",
+"Kelembapan",
+"Penyinaran_Jam"
+
+]
+
+
+X = df[fitur]
+
+y = df["Hasil_Panen_Kg"]
+
+
+model.fit(X,y)
+
+
+pickle.dump(
+model,
+open("model.pkl","wb")
+)
