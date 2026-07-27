@@ -1,28 +1,24 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import joblib
+import matplotlib.pyplot as plt
 
 
-# ==========================
-# Konfigurasi halaman
-# ==========================
-
+# konfigurasi halaman
 st.set_page_config(
-    page_title="Prediksi Hasil Panen Cabai Rawit",
+    page_title="Prediksi Panen Cabe Rawit",
     page_icon="🌶️",
-    layout="centered"
+    layout="wide"
 )
 
 
-# ==========================
-# Load Model
-# ==========================
-
+# load model
 @st.cache_resource
 def load_model():
 
-    with open("model.pkl","rb") as file:
-        model = pickle.load(file)
+    model = joblib.load(
+        "model.pkl"
+    )
 
     return model
 
@@ -30,98 +26,149 @@ def load_model():
 model = load_model()
 
 
-# ==========================
-# Judul
-# ==========================
+# judul
+st.title(
+    "🌶️ Prediksi Hasil Panen Cabe Rawit"
+)
 
-st.title("🌶️ Prediksi Hasil Panen Cabai Rawit")
 
 st.write(
-"""
-Sistem prediksi hasil panen cabai rawit
-menggunakan algoritma Random Forest Regressor
-berdasarkan faktor cuaca.
-"""
+    "Implementasi Algoritma Random Forest Regressor"
 )
 
 
-# ==========================
-# Input Data
-# ==========================
-
-tahun = st.number_input(
-    "Tahun",
-    min_value=2016,
-    max_value=2030,
-    value=2025
-)
+st.divider()
 
 
-minggu = st.number_input(
-    "Minggu Ke-",
-    min_value=1,
-    max_value=52,
-    value=4
-)
+# input pengguna
+
+col1,col2 = st.columns(2)
 
 
-curah_hujan = st.number_input(
-    "Curah Hujan (mm)",
-    min_value=0.0,
-    value=100.0
-)
+with col1:
+
+    tahun = st.number_input(
+        "Tahun",
+        2021,
+        2030,
+        2025
+    )
 
 
-suhu = st.number_input(
-    "Suhu (°C)",
-    min_value=0.0,
-    value=25.0
-)
+    minggu = st.number_input(
+        "Minggu",
+        1,
+        52,
+        1
+    )
 
 
-kelembapan = st.number_input(
-    "Kelembapan (%)",
-    min_value=0.0,
-    max_value=100.0,
-    value=80.0
-)
+    curah_hujan = st.number_input(
+        "Curah Hujan (mm)",
+        0.0,
+        1000.0,
+        200.0
+    )
 
 
-penyinaran = st.number_input(
-    "Penyinaran Jam",
-    min_value=0.0,
-    value=5.0
-)
+with col2:
+
+    suhu = st.number_input(
+        "Suhu (°C)",
+        10.0,
+        40.0,
+        25.0
+    )
 
 
+    kelembapan = st.number_input(
+        "Kelembapan (%)",
+        0.0,
+        100.0,
+        80.0
+    )
 
-# ==========================
-# Prediksi
-# ==========================
 
-if st.button("Prediksi"):
+    penyinaran = st.number_input(
+        "Penyinaran (Jam)",
+        0.0,
+        15.0,
+        6.0
+    )
+
+
+# tombol prediksi
+
+if st.button("🔍 Prediksi Hasil Panen"):
 
 
     data_input = pd.DataFrame({
 
-        "Tahun":[tahun],
-
-        "Minggu":[minggu],
-
-        "Curah_Hujan_mm":[curah_hujan],
-
-        "Suhu_C":[suhu],
-
-        "Kelembapan":[kelembapan],
-
-        "Penyinaran_Jam":[penyinaran]
+        "tahun":[tahun],
+        "minggu":[minggu],
+        "curah_hujan":[curah_hujan],
+        "suhu":[suhu],
+        "kelembapan":[kelembapan],
+        "penyinaran":[penyinaran]
 
     })
 
 
-    hasil = model.predict(data_input)
+    hasil = model.predict(
+        data_input
+    )
 
 
     st.success(
-        f"Hasil Prediksi Panen Cabai Rawit : {hasil[0]:,.2f} Kg"
+        f"Prediksi Hasil Panen : {hasil[0]:,.2f} Kg"
+    )
+
+
+
+# grafik dataset
+
+st.divider()
+
+st.subheader(
+    "📈 Grafik Data Hasil Panen"
+)
+
+
+try:
+
+    df = pd.read_csv(
+        "Dataset_Cabe_Rawit_Baros_2016_2025.csv",
+        sep=";"
+    )
+
+
+    df.columns = df.columns.str.strip()
+
+
+    fig, ax = plt.subplots()
+
+
+    ax.plot(
+        df["Minggu"],
+        df["Hasil_Panen_Kg"]
+    )
+
+
+    ax.set_xlabel(
+        "Minggu"
+    )
+
+
+    ax.set_ylabel(
+        "Hasil Panen Kg"
+    )
+
+
+    st.pyplot(fig)
+
+
+except:
+
+    st.warning(
+        "Grafik tidak tersedia"
     )
